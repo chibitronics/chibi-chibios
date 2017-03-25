@@ -43,6 +43,7 @@ event_source_t refresh_event;
 event_source_t serial_event;
 event_source_t mode_event;
 event_source_t option_event;
+event_source_t led_event;
 uint8_t serial_init = 0;
 
 static virtual_timer_t led_vt;
@@ -50,6 +51,15 @@ static virtual_timer_t refresh_vt;
 
 static void mode_cb(EXTDriver *extp, expchannel_t channel);
 static void option_cb(EXTDriver *extp, expchannel_t channel);
+
+#define PWM_MAX 4096
+#define PWM_INCREMENT 100
+static const PWMConfig pwm_config = {
+  47972352UL / 16, // frequency of PWM clock
+  PWM_MAX,    // # of PWM clocks per PWM period
+  NULL,    // callback
+  {{PWM_OUTPUT_ACTIVE_HIGH, NULL}, {PWM_OUTPUT_ACTIVE_HIGH, NULL}},
+};
 
 static const SPIConfig spi_config = {
   NULL,
@@ -77,14 +87,17 @@ typedef enum {
 } dv_mode;
 static char current_mode = MODE_SERIAL;
 
+static pwmcnt_t pwm_width = 0;
+static uint32_t pwm_counting_up = 1;
 #define REFRESH_RATE  50   // in ms
 
 static void led_cb(void *arg) {
   (void) arg;
 
-  palTogglePad(GPIOA, 6);
+  // palTogglePad(GPIOA, 6);
   chSysLockFromISR();
-  chVTSetI(&led_vt, MS2ST(500), led_cb, NULL);
+  chEvtBroadcastI(&led_event);
+  chVTSetI(&led_vt, MS2ST(40), led_cb, NULL);
   chSysUnlockFromISR();
 }
 
@@ -100,18 +113,46 @@ static void refresh_cb(void *arg) {
 static void mode_cb(EXTDriver *extp, expchannel_t channel) {
   (void)extp;
   (void)channel;
-  chSysLockFromISR();
-  chEvtBroadcastI(&mode_event);
-  chSysUnlockFromISR();
+  if(palReadPad(IOPORT2, 7) == PAL_HIGH) { // other button isn't alread pressed
+    chSysLockFromISR();
+    chEvtBroadcastI(&mode_event);
+    chSysUnlockFromISR();
+  }
 }
 
 
 static void option_cb(EXTDriver *extp, expchannel_t channel) {
   (void)extp;
   (void)channel;
-  chSysLockFromISR();
-  chEvtBroadcastI(&option_event);
-  chSysUnlockFromISR();
+
+  // check to see if the other button is already held down before issuing event
+  if(palReadPad(IOPORT2, 6) == PAL_HIGH) { // other button isn't already pressed
+    chSysLockFromISR();
+    //  chEvtBroadcastI(&option_event);
+    chEvtBroadcastI(&mode_event); // get rid of option, make both mode buttons
+    chSysUnlockFromISR();
+  }
+}
+
+static void led_handler(eventid_t id) {
+  (void) id;
+
+  PWMD1.tpm->C[0].V = pwm_width;
+  
+  if( pwm_counting_up ) {
+    pwm_width += PWM_INCREMENT;
+    if( pwm_width > (PWM_MAX - 1) ) {
+      pwm_width = PWM_MAX - 1;
+      pwm_counting_up = 0;
+    }
+  } else {
+    if( pwm_width > PWM_INCREMENT ) {
+      pwm_width -= PWM_INCREMENT;
+    } else {
+      pwm_width = 0;
+      pwm_counting_up = 1;
+    }
+  }
 }
 
 static void refresh_handler(eventid_t id) {
@@ -200,7 +241,7 @@ static THD_FUNCTION(evHandlerThread, arg) {
 
   orchardShellInit();
 
-  chprintf(stream, "\r\nChibitronics Dataviewer build %s\r\n", gitversion);
+  chprintf(stream, "\r\nChibiscreen build %s\r\n", gitversion);
   chprintf(stream, "Copyright (c) 2016 Chibitronics PTE LTD\r\n", gitversion);
   chprintf(stream, "boot freemem: %d\r\n", chCoreGetStatusX());
 
@@ -219,7 +260,17 @@ static THD_FUNCTION(evHandlerThread, arg) {
   current_mode = MODE_SERIAL;
   evtTableHook(orchard_app_events, serial_event, serial_handler);
 
+  chEvtObjectInit(&led_event);
+  evtTableHook(orchard_app_events, led_event, led_handler);
+  
   extStart(&EXTD1, &ext_config); // enables interrupts on gpios
+
+  // start LED flashing
+  pwmStart(&PWMD1, &pwm_config);
+  pwmEnableChannel(&PWMD1, 0, 0);
+  //  palSetPadMode(IOPORT1, 6, PAL_MODE_ALTERNATIVE_2); // now handled in board.c
+  chVTObjectInit(&led_vt);
+  chVTSet(&led_vt, MS2ST(500), led_cb, NULL);
 
   // now handled properly elsewhere
   // palWritePad(GPIOA, 5, PAL_HIGH);  // oled_cs
@@ -230,10 +281,6 @@ static THD_FUNCTION(evHandlerThread, arg) {
   // oledOrchardBanner();
   
   chprintf(stream, "after gfx mem: %d bytes\r\n", chCoreGetStatusX());
-
-  // start LED flashing
-  chVTObjectInit(&led_vt);
-  chVTSet(&led_vt, MS2ST(500), led_cb, NULL);
 
   // start refreshing the screen
   chVTObjectInit(&refresh_vt);

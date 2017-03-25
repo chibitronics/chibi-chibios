@@ -30,7 +30,7 @@
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
 
-#define KINETIS_TPM0_CHANNELS 6
+#define KINETIS_TPM0_CHANNELS 2
 #define KINETIS_TPM1_CHANNELS 2
 #define KINETIS_TPM2_CHANNELS 2
 

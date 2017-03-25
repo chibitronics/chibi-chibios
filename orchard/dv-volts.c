@@ -26,7 +26,11 @@ static void draw_volts(uint32_t millivolts) {
   coord_t font_height;
   font_t font;
 
-  chsnprintf(vstr, sizeof(vstr), "%d.%03d", millivolts / 1000, millivolts % 1000 );
+  if(millivolts > 3500 ) {
+    chsnprintf(vstr, sizeof(vstr), "TOO MUCH!");
+  } else {
+    chsnprintf(vstr, sizeof(vstr), "%d.%03d", millivolts / 1000, millivolts % 1000 );
+  }
 
   orchardGfxStart();
   width = gdispGetWidth();
@@ -40,8 +44,13 @@ static void draw_volts(uint32_t millivolts) {
 
   font = gdispOpenFont("DejaVuSans12");
   font_height = gdispGetFontMetric(font, fontHeight);
-  gdispDrawStringBox(0, height - font_height * 2, width, gdispGetFontMetric(font, fontHeight),
-                     "volts", font, White, justifyCenter);
+  if(millivolts > 3500) {
+    gdispDrawStringBox(0, height - font_height * 2, width, gdispGetFontMetric(font, fontHeight),
+		       "voltage too high", font, White, justifyCenter);
+  } else {
+    gdispDrawStringBox(0, height - font_height * 2, width, gdispGetFontMetric(font, fontHeight),
+		       "volts", font, White, justifyCenter);
+  }
 
   gdispFlush();
   gdispCloseFont(font);

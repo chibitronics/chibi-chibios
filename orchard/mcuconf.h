@@ -92,6 +92,8 @@
  */
 #define KINETIS_LPTMR0_PRIORITY                 1
 
+#define KINETIS_PWM_USE_TPM0                    TRUE
+#define KINETIS_PWM_TPM0_IRQ_PRIORITY           5
 /*
  * Processor specific widths of each port.
  * Smaller numbers can be used if only lower pins in a port are being used to

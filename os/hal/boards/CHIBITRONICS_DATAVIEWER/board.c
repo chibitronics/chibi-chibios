@@ -30,7 +30,7 @@ const PALConfig pal_default_config =
       .pads = {
         /* PTA0*/ PAL_MODE_ALTERNATIVE_3,   /* PTA1*/ PAL_MODE_ALTERNATIVE_3, /* PTA2*/ PAL_MODE_ALTERNATIVE_3,    // swc, rst_pulse, swd
         /* PTA3*/ PAL_MODE_UNCONNECTED,     /* PTA4*/ PAL_MODE_UNCONNECTED,   /* PTA5*/ PAL_MODE_OUTPUT_PUSHPULL,  // nc, nc, oled_cs
-        /* PTA6*/ PAL_MODE_OUTPUT_PUSHPULL, /* PTA7*/ PAL_MODE_ALTERNATIVE_3, /* PTA8*/ PAL_MODE_UNCONNECTED,       // mcu_led, spi_mosi, nc
+        /* PTA6*/ PAL_MODE_ALTERNATIVE_2, /* PTA7*/ PAL_MODE_ALTERNATIVE_3, /* PTA8*/ PAL_MODE_UNCONNECTED,       // mcu_led, spi_mosi, nc
         /* PTA9*/ PAL_MODE_UNCONNECTED,     /*PTA10*/ PAL_MODE_UNCONNECTED,  /*PTA11*/ PAL_MODE_UNCONNECTED,       // nc, nc, nc
         /*PTA12*/ PAL_MODE_INPUT_ANALOG,    /*PTA13*/ PAL_MODE_UNCONNECTED,  /*PTA14*/ PAL_MODE_UNCONNECTED,       // ana sample on rx, nc, nc
         /*PTA15*/ PAL_MODE_UNCONNECTED,    /*PTA16*/ PAL_MODE_UNCONNECTED,    /*PTA17*/ PAL_MODE_UNCONNECTED,
