@@ -50,6 +50,10 @@ static void draw_volts(uint32_t millivolts) {
   } else {
     gdispDrawStringBox(0, height - font_height * 2, width, gdispGetFontMetric(font, fontHeight),
 		       "volts", font, White, justifyCenter);
+    if(millivolts > 3300) {
+      gdispDrawStringBox(0, height - font_height, width, gdispGetFontMetric(font, fontHeight),
+			 "Caution: 3.3V max!", font, White, justifyCenter);
+    }
   }
 
   gdispFlush();

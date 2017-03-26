@@ -130,8 +130,8 @@ void sdObjectInit(SerialDriver *sdp, qnotify_t inotify, qnotify_t onotify) {
   sdp->vmt = &vmt;
   osalEventObjectInit(&sdp->event);
   sdp->state = SD_STOP;
-  iqObjectInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, inotify, sdp);
-  oqObjectInit(&sdp->oqueue, sdp->ob, 8, onotify, sdp); // rarely tx, so fix at a small level to save space
+  iqObjectInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFER_RX_SIZE, inotify, sdp);
+  oqObjectInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFER_TX_SIZE, onotify, sdp); // rarely tx, so fix at a small level to save space
 }
 
 /**

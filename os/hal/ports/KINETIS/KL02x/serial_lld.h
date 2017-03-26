@@ -119,9 +119,9 @@ typedef struct {
   /* Output queue.*/                                                        \
   output_queue_t            oqueue;                                         \
   /* Input circular buffer.*/                                               \
-  uint8_t                   ib[SERIAL_BUFFERS_SIZE];                        \
+  uint8_t                   ib[SERIAL_BUFFER_RX_SIZE];                      \
   /* Output circular buffer.*/                                              \
-  uint8_t                   ob[SERIAL_BUFFERS_SIZE];                        \
+  uint8_t                   ob[SERIAL_BUFFER_TX_SIZE];                      \
   /* End of the mandatory fields.*/                                         \
   /* Pointer to the UART registers block.*/                                 \
   UARTLP_TypeDef            *uart;

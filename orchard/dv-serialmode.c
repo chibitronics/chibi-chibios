@@ -15,6 +15,8 @@
 static char text_buffer[TEXT_LEN];
 static int8_t write_ptr = 0; 
 
+extern uint32_t serial_needs_update;
+
 uint8_t isprint_local(char c) {
   return ((c >= ' ' && c <= '~') ? 1 : 0);
 }
@@ -135,6 +137,40 @@ void dvInit(void) {
   write_ptr = 0;
 }
 
+static uint8_t locker_pos = 0;
+uint8_t locker_mode = 0;
+static uint8_t sentinal_pos = 0;
+static char locker[] = "#LCK\n";
+static char sentinal[] = "#CLR\n";
+#define SENTINAL_LEN 5
+uint32_t dv_search_sentinal(char c) {
+  if( c == sentinal[sentinal_pos] && (sentinal_pos == (SENTINAL_LEN - 1)) ) {
+    sentinal_pos = 0;
+    return 1;
+  }
+  if( c == sentinal[sentinal_pos] ) {
+    sentinal_pos++;
+    return 0;
+  }
+  
+  sentinal_pos = 0;
+  return 0;
+}
+
+uint32_t dv_search_locker(char c) {
+  if( c == locker[locker_pos] && (locker_pos == (SENTINAL_LEN - 1)) ) {
+    locker_pos = 0;
+    return 1;
+  }
+  if( c == locker[locker_pos] ) {
+    locker_pos++;
+    return 0;
+  }
+  
+  locker_pos = 0;
+  return 0;
+}
+
 void dvDoSerial(void) {
   char c;
   int8_t prev_ptr;
@@ -150,10 +186,26 @@ void dvDoSerial(void) {
     if( c == '\r' )
       c = '\n';
 
+    if(dv_search_sentinal(c)) {
+      if( locker_mode ) {
+	updateSerialScreen();
+      }
+      dvInit();  // clear the buffer and quit if the sentinal sequence is found
+      return; 
+    }
+    if(dv_search_locker(c)) {
+      locker_mode = locker_mode ? 0 : 1; // toggle locker mode
+      dvInit();
+      return;
+    }
+    
     // if CRLF, eat multiple CRLF
     if( c == '\n' ) {
-      if( text_buffer[prev_ptr] == '\n' )
+      if( text_buffer[prev_ptr] == '\n' ) {
 	return;
+      }
+      if( !locker_mode )
+	serial_needs_update = 1; // update on CR
     }
     
     text_buffer[write_ptr] = c;
@@ -162,5 +214,4 @@ void dvDoSerial(void) {
     write_ptr %= TEXT_LEN;
     text_buffer[write_ptr] = ' '; // rule: current spot we're pointing to for write cannot be a newline
   }
-  
 }

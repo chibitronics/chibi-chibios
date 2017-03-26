@@ -52,8 +52,10 @@ static virtual_timer_t refresh_vt;
 static void mode_cb(EXTDriver *extp, expchannel_t channel);
 static void option_cb(EXTDriver *extp, expchannel_t channel);
 
+uint32_t serial_needs_update = 0;
+
 #define PWM_MAX 4096
-#define PWM_INCREMENT 100
+#define PWM_INCREMENT 140
 static const PWMConfig pwm_config = {
   47972352UL / 16, // frequency of PWM clock
   PWM_MAX,    // # of PWM clocks per PWM period
@@ -97,7 +99,7 @@ static void led_cb(void *arg) {
   // palTogglePad(GPIOA, 6);
   chSysLockFromISR();
   chEvtBroadcastI(&led_event);
-  chVTSetI(&led_vt, MS2ST(40), led_cb, NULL);
+  chVTSetI(&led_vt, MS2ST(REFRESH_RATE), led_cb, NULL);
   chSysUnlockFromISR();
 }
 
@@ -160,7 +162,10 @@ static void refresh_handler(eventid_t id) {
 
   switch(current_mode) {
   case MODE_SERIAL:
-    updateSerialScreen();
+    if( serial_needs_update ) {
+      serial_needs_update = 0;
+      updateSerialScreen(); // now updated only when new characters come in
+    }
     break;
   case MODE_VOLTS:
     updateVoltsScreen();
@@ -292,6 +297,8 @@ static THD_FUNCTION(evHandlerThread, arg) {
   dvInit();
   while(true) {
     chEvtDispatch(evtHandlers(orchard_app_events), chEvtWaitOne(ALL_EVENTS));
+    //    if( current_mode == MODE_SERIAL )
+    //      dvDoSerial(); // this grabs characters and processes them
   }
 }
 
