@@ -20,4 +20,10 @@ extern void *stream;
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 #endif
 
+typedef enum {
+  MODE_SERIAL,
+  MODE_OSCOPE,
+  MODE_VOLTS,
+} dv_mode;
+
 #endif /* __ORCHARD_H__ */

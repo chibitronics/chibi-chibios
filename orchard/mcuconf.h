@@ -86,6 +86,8 @@
  * ADC driver system settings.
  */
 #define KINETIS_ADC_USE_ADC0                  TRUE
+#define KINETIS_ADC_IRQ_PRIORITY              5
+#define KINETIS_CMP0_PRIORITY                 7
 
 /*
  * LPTMR driver system settings.
@@ -94,6 +96,7 @@
 
 #define KINETIS_PWM_USE_TPM0                    TRUE
 #define KINETIS_PWM_TPM0_IRQ_PRIORITY           6
+
 /*
  * Processor specific widths of each port.
  * Smaller numbers can be used if only lower pins in a port are being used to

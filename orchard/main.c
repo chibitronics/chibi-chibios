@@ -44,6 +44,7 @@ event_source_t serial_event;
 event_source_t mode_event;
 event_source_t option_event;
 event_source_t led_event;
+event_source_t cmp_event;
 uint8_t serial_init = 0;
 
 static virtual_timer_t led_vt;
@@ -82,12 +83,7 @@ static const EXTConfig ext_config = {
   }
 };
 
-typedef enum {
-  MODE_SERIAL,
-  MODE_OSCOPE,
-  MODE_VOLTS,
-} dv_mode;
-static char current_mode = MODE_SERIAL;
+uint8_t current_mode = MODE_SERIAL;
 
 static pwmcnt_t pwm_width = 0;
 static uint32_t pwm_counting_up = 1;
@@ -171,7 +167,8 @@ static void refresh_handler(eventid_t id) {
     updateVoltsScreen();
     break;
   case MODE_OSCOPE:
-    updateOscopeScreen();
+    // add code to enable auto-sampling if trigger has not been found for a while
+    // updateOscopeScreen(); // now handled by trigger mechanism
     break;
   default:
     break;
@@ -213,17 +210,19 @@ static void mode_handler(eventid_t id) {
   (void) id;
   switch(current_mode) {
   case MODE_SERIAL:
-    oledPauseBanner("Wave Mode");
-    serial_init = 0;
-    current_mode = MODE_OSCOPE;
-    break;
-  case MODE_OSCOPE:
     oledPauseBanner("Volts Mode");
+    serial_init = 0;
     current_mode = MODE_VOLTS;
     break;
   case MODE_VOLTS:
-    oledPauseBanner("Serial Mode");
+    oledPauseBanner("Wave Mode");
     serial_init = 1;
+    current_mode = MODE_OSCOPE;
+    CMP0->SCR = CMP_SCR_IER(1); // enable comparator interrupts
+    break;
+  case MODE_OSCOPE:
+    CMP0->SCR = CMP_SCR_IER(0); // disable comparator interrupts
+    oledPauseBanner("Text Mode");
     current_mode = MODE_SERIAL;
     break;
   default:
@@ -240,6 +239,7 @@ static THD_FUNCTION(evHandlerThread, arg) {
 
   adcStart(&ADCD1, &adccfg1);
   analogStart();
+  oscopeInit();
 
   spiStart(&SPID1, &spi_config);
   oledStart(&SPID1);
@@ -267,6 +267,9 @@ static THD_FUNCTION(evHandlerThread, arg) {
 
   chEvtObjectInit(&led_event);
   evtTableHook(orchard_app_events, led_event, led_handler);
+
+  // event object initialization happens in oscopeIinit
+  evtTableHook(orchard_app_events, cmp_event, cmp_handler);
   
   extStart(&EXTD1, &ext_config); // enables interrupts on gpios
 
@@ -292,7 +295,7 @@ static THD_FUNCTION(evHandlerThread, arg) {
   chVTSet(&refresh_vt, MS2ST(REFRESH_RATE), refresh_cb, NULL);
 
   serial_init = 1;
-  oledPauseBanner("Serial Mode");
+  oledPauseBanner("Text Mode");
 
   dvInit();
   while(true) {

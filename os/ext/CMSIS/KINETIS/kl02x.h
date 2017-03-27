@@ -320,6 +320,25 @@ typedef struct
   __IO uint8_t  REGSC;
 } PMC_TypeDef;
 
+/* ----------------------------------------------------------------------------
+   -- CMP Peripheral Access Layer
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup CMP_Peripheral_Access_Layer CMP Peripheral Access Layer
+ * @{
+ */
+
+/** CMP - Register Layout Typedef */
+typedef struct {
+  __IO uint8_t CR0;                                /**< CMP Control Register 0, offset: 0x0 */
+  __IO uint8_t CR1;                                /**< CMP Control Register 1, offset: 0x1 */
+  __IO uint8_t FPR;                                /**< CMP Filter Period Register, offset: 0x2 */
+  __IO uint8_t SCR;                                /**< CMP Status and Control Register, offset: 0x3 */
+  __IO uint8_t DACCR;                              /**< DAC Control Register, offset: 0x4 */
+  __IO uint8_t MUXCR;                              /**< MUX Control Register, offset: 0x5 */
+} CMP_TypeDef;
+
 /****************************************************************/
 /*                  Peripheral memory map                       */
 /****************************************************************/
@@ -354,6 +373,25 @@ typedef struct
 #define GPIOD_BASE              ((uint32_t)0x400FF0C0)
 #define GPIOE_BASE              ((uint32_t)0x400FF100)
 
+/*!
+ * @}
+ */ /* end of group CMP_Register_Masks */
+
+
+/* CMP - Peripheral instance base addresses */
+/** Peripheral CMP0 base address */
+#define CMP0_BASE                                ((uint32_t)0x40073000)
+/** Peripheral CMP0 base pointer */
+#define CMP0                                     ((CMP_TypeDef *)CMP0_BASE)
+#define CMP0_BASE_PTR                            (CMP0)
+/** Array initializer of CMP peripheral base addresses */
+#define CMP_BASE_ADDRS                           { CMP0_BASE }
+/** Array initializer of CMP peripheral base pointers */
+#define CMP_BASE_PTRS                            { CMP0 }
+/** Interrupt vectors for the CMP peripheral type */
+#define CMP_IRQS                                 { CMP0_IRQn }
+
+
 /****************************************************************/
 /*                 Peripheral declaration                       */
 /****************************************************************/
@@ -387,6 +425,134 @@ typedef struct
 #define GPIOC                   ((GPIO_TypeDef  *)   GPIOC_BASE)
 #define GPIOD                   ((GPIO_TypeDef  *)   GPIOD_BASE)
 #define GPIOE                   ((GPIO_TypeDef  *)   GPIOE_BASE)
+
+/* ----------------------------------------------------------------------------
+   -- CMP - Register accessor macros
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup CMP_Register_Accessor_Macros CMP - Register accessor macros
+ * @{
+ */
+
+
+/* CMP - Register accessors */
+#define CMP_CR0_REG(base)                        ((base)->CR0)
+#define CMP_CR1_REG(base)                        ((base)->CR1)
+#define CMP_FPR_REG(base)                        ((base)->FPR)
+#define CMP_SCR_REG(base)                        ((base)->SCR)
+#define CMP_DACCR_REG(base)                      ((base)->DACCR)
+#define CMP_MUXCR_REG(base)                      ((base)->MUXCR)
+
+/* CMP - Register instance definitions */
+/* CMP0 */
+#define CMP0_CR0                                 CMP_CR0_REG(CMP0)
+#define CMP0_CR1                                 CMP_CR1_REG(CMP0)
+#define CMP0_FPR                                 CMP_FPR_REG(CMP0)
+#define CMP0_SCR                                 CMP_SCR_REG(CMP0)
+#define CMP0_DACCR                               CMP_DACCR_REG(CMP0)
+#define CMP0_MUXCR                               CMP_MUXCR_REG(CMP0)
+
+/* ----------------------------------------------------------------------------
+   -- CMP Register Masks
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup CMP_Register_Masks CMP Register Masks
+ * @{
+ */
+
+/* CR0 Bit Fields */
+#define CMP_CR0_HYSTCTR_MASK                     0x3u
+#define CMP_CR0_HYSTCTR_SHIFT                    0
+#define CMP_CR0_HYSTCTR_WIDTH                    2
+#define CMP_CR0_HYSTCTR(x)                       (((uint8_t)(((uint8_t)(x))<<CMP_CR0_HYSTCTR_SHIFT))&CMP_CR0_HYSTCTR_MASK)
+#define CMP_CR0_FILTER_CNT_MASK                  0x70u
+#define CMP_CR0_FILTER_CNT_SHIFT                 4
+#define CMP_CR0_FILTER_CNT_WIDTH                 3
+#define CMP_CR0_FILTER_CNT(x)                    (((uint8_t)(((uint8_t)(x))<<CMP_CR0_FILTER_CNT_SHIFT))&CMP_CR0_FILTER_CNT_MASK)
+/* CR1 Bit Fields */
+#define CMP_CR1_EN_MASK                          0x1u
+#define CMP_CR1_EN_SHIFT                         0
+#define CMP_CR1_EN_WIDTH                         1
+#define CMP_CR1_EN(x)                            (((uint8_t)(((uint8_t)(x))<<CMP_CR1_EN_SHIFT))&CMP_CR1_EN_MASK)
+#define CMP_CR1_OPE_MASK                         0x2u
+#define CMP_CR1_OPE_SHIFT                        1
+#define CMP_CR1_OPE_WIDTH                        1
+#define CMP_CR1_OPE(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_CR1_OPE_SHIFT))&CMP_CR1_OPE_MASK)
+#define CMP_CR1_COS_MASK                         0x4u
+#define CMP_CR1_COS_SHIFT                        2
+#define CMP_CR1_COS_WIDTH                        1
+#define CMP_CR1_COS(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_CR1_COS_SHIFT))&CMP_CR1_COS_MASK)
+#define CMP_CR1_INV_MASK                         0x8u
+#define CMP_CR1_INV_SHIFT                        3
+#define CMP_CR1_INV_WIDTH                        1
+#define CMP_CR1_INV(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_CR1_INV_SHIFT))&CMP_CR1_INV_MASK)
+#define CMP_CR1_PMODE_MASK                       0x10u
+#define CMP_CR1_PMODE_SHIFT                      4
+#define CMP_CR1_PMODE_WIDTH                      1
+#define CMP_CR1_PMODE(x)                         (((uint8_t)(((uint8_t)(x))<<CMP_CR1_PMODE_SHIFT))&CMP_CR1_PMODE_MASK)
+#define CMP_CR1_TRIGM_MASK                       0x20u
+#define CMP_CR1_TRIGM_SHIFT                      5
+#define CMP_CR1_TRIGM_WIDTH                      1
+#define CMP_CR1_TRIGM(x)                         (((uint8_t)(((uint8_t)(x))<<CMP_CR1_TRIGM_SHIFT))&CMP_CR1_TRIGM_MASK)
+#define CMP_CR1_WE_MASK                          0x40u
+#define CMP_CR1_WE_SHIFT                         6
+#define CMP_CR1_WE_WIDTH                         1
+#define CMP_CR1_WE(x)                            (((uint8_t)(((uint8_t)(x))<<CMP_CR1_WE_SHIFT))&CMP_CR1_WE_MASK)
+#define CMP_CR1_SE_MASK                          0x80u
+#define CMP_CR1_SE_SHIFT                         7
+#define CMP_CR1_SE_WIDTH                         1
+#define CMP_CR1_SE(x)                            (((uint8_t)(((uint8_t)(x))<<CMP_CR1_SE_SHIFT))&CMP_CR1_SE_MASK)
+/* FPR Bit Fields */
+#define CMP_FPR_FILT_PER_MASK                    0xFFu
+#define CMP_FPR_FILT_PER_SHIFT                   0
+#define CMP_FPR_FILT_PER_WIDTH                   8
+#define CMP_FPR_FILT_PER(x)                      (((uint8_t)(((uint8_t)(x))<<CMP_FPR_FILT_PER_SHIFT))&CMP_FPR_FILT_PER_MASK)
+/* SCR Bit Fields */
+#define CMP_SCR_COUT_MASK                        0x1u
+#define CMP_SCR_COUT_SHIFT                       0
+#define CMP_SCR_COUT_WIDTH                       1
+#define CMP_SCR_COUT(x)                          (((uint8_t)(((uint8_t)(x))<<CMP_SCR_COUT_SHIFT))&CMP_SCR_COUT_MASK)
+#define CMP_SCR_CFF_MASK                         0x2u
+#define CMP_SCR_CFF_SHIFT                        1
+#define CMP_SCR_CFF_WIDTH                        1
+#define CMP_SCR_CFF(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_SCR_CFF_SHIFT))&CMP_SCR_CFF_MASK)
+#define CMP_SCR_CFR_MASK                         0x4u
+#define CMP_SCR_CFR_SHIFT                        2
+#define CMP_SCR_CFR_WIDTH                        1
+#define CMP_SCR_CFR(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_SCR_CFR_SHIFT))&CMP_SCR_CFR_MASK)
+#define CMP_SCR_IEF_MASK                         0x8u
+#define CMP_SCR_IEF_SHIFT                        3
+#define CMP_SCR_IEF_WIDTH                        1
+#define CMP_SCR_IEF(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_SCR_IEF_SHIFT))&CMP_SCR_IEF_MASK)
+#define CMP_SCR_IER_MASK                         0x10u
+#define CMP_SCR_IER_SHIFT                        4
+#define CMP_SCR_IER_WIDTH                        1
+#define CMP_SCR_IER(x)                           (((uint8_t)(((uint8_t)(x))<<CMP_SCR_IER_SHIFT))&CMP_SCR_IER_MASK)
+/* DACCR Bit Fields */
+#define CMP_DACCR_VOSEL_MASK                     0x3Fu
+#define CMP_DACCR_VOSEL_SHIFT                    0
+#define CMP_DACCR_VOSEL_WIDTH                    6
+#define CMP_DACCR_VOSEL(x)                       (((uint8_t)(((uint8_t)(x))<<CMP_DACCR_VOSEL_SHIFT))&CMP_DACCR_VOSEL_MASK)
+#define CMP_DACCR_VRSEL_MASK                     0x40u
+#define CMP_DACCR_VRSEL_SHIFT                    6
+#define CMP_DACCR_VRSEL_WIDTH                    1
+#define CMP_DACCR_VRSEL(x)                       (((uint8_t)(((uint8_t)(x))<<CMP_DACCR_VRSEL_SHIFT))&CMP_DACCR_VRSEL_MASK)
+#define CMP_DACCR_DACEN_MASK                     0x80u
+#define CMP_DACCR_DACEN_SHIFT                    7
+#define CMP_DACCR_DACEN_WIDTH                    1
+#define CMP_DACCR_DACEN(x)                       (((uint8_t)(((uint8_t)(x))<<CMP_DACCR_DACEN_SHIFT))&CMP_DACCR_DACEN_MASK)
+/* MUXCR Bit Fields */
+#define CMP_MUXCR_MSEL_MASK                      0x7u
+#define CMP_MUXCR_MSEL_SHIFT                     0
+#define CMP_MUXCR_MSEL_WIDTH                     3
+#define CMP_MUXCR_MSEL(x)                        (((uint8_t)(((uint8_t)(x))<<CMP_MUXCR_MSEL_SHIFT))&CMP_MUXCR_MSEL_MASK)
+#define CMP_MUXCR_PSEL_MASK                      0x38u
+#define CMP_MUXCR_PSEL_SHIFT                     3
+#define CMP_MUXCR_PSEL_WIDTH                     3
+#define CMP_MUXCR_PSEL(x)                        (((uint8_t)(((uint8_t)(x))<<CMP_MUXCR_PSEL_SHIFT))&CMP_MUXCR_PSEL_MASK)
+
 
 /****************************************************************/
 /*           Peripheral Registers Bits Definition               */
