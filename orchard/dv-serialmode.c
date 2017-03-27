@@ -140,8 +140,8 @@ void dvInit(void) {
 static uint8_t locker_pos = 0;
 uint8_t locker_mode = 0;
 static uint8_t sentinal_pos = 0;
-static char locker[] = "#LCK\n";
-static char sentinal[] = "#CLR\n";
+static char locker[] = "#MOD\n";
+static char sentinal[] = "#SYN\n";
 #define SENTINAL_LEN 5
 uint32_t dv_search_sentinal(char c) {
   if( c == sentinal[sentinal_pos] && (sentinal_pos == (SENTINAL_LEN - 1)) ) {
