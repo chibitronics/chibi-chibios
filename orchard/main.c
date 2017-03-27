@@ -212,16 +212,20 @@ static void mode_handler(eventid_t id) {
   case MODE_SERIAL:
     oledPauseBanner("Volts Mode");
     serial_init = 0;
+    nvicDisableVector(UART0_IRQn);
     current_mode = MODE_VOLTS;
     break;
   case MODE_VOLTS:
     oledPauseBanner("Wave Mode");
     serial_init = 1;
     current_mode = MODE_OSCOPE;
-    CMP0->SCR = CMP_SCR_IER(1); // enable comparator interrupts
+    palSetPadMode(IOPORT2, 2, PAL_MODE_INPUT_ANALOG);    
+    nvicEnableVector(CMP0_IRQn, KINETIS_CMP0_PRIORITY);
     break;
   case MODE_OSCOPE:
-    CMP0->SCR = CMP_SCR_IER(0); // disable comparator interrupts
+    nvicDisableVector(CMP0_IRQn);
+    palSetPadMode(IOPORT2, 2, PAL_MODE_ALTERNATIVE_2);    
+    nvicEnableVector(UART0_IRQn, KINETIS_SERIAL_UART0_PRIORITY);
     oledPauseBanner("Text Mode");
     current_mode = MODE_SERIAL;
     break;
@@ -295,7 +299,8 @@ static THD_FUNCTION(evHandlerThread, arg) {
   chVTSet(&refresh_vt, MS2ST(REFRESH_RATE), refresh_cb, NULL);
 
   serial_init = 1;
-  oledPauseBanner("Text Mode");
+  nvicEnableVector(UART0_IRQn, KINETIS_SERIAL_UART0_PRIORITY);
+  oledPauseBanner("Waiting for text...");
 
   dvInit();
   while(true) {

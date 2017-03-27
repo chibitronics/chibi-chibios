@@ -9,3 +9,4 @@ uint8_t *analogReadMic(void);
 void analogStart(void);
 uint32_t analogRead(int adc_num);
 uint16_t *scopeRead(int adc_num, int speed_mode);
+void scopeReadI(void);

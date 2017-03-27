@@ -66,6 +66,8 @@ static void draw_wave(uint16_t *samples) {
   orchardGfxEnd();
 }
 
+extern adcsample_t scope_sample[];
+
 void updateOscopeScreen(void) {
   uint16_t *samples;
 
@@ -73,10 +75,16 @@ void updateOscopeScreen(void) {
     return;
   
   // grab a reading
-  samples = scopeRead(0, speed_mode);  // 1 is high, 0 is low
+  // samples = scopeRead(0, 0); // channel, speed
+  samples = (uint16_t *) scope_sample; // it's what happens anyways...
   
   // now display the time-averaged voltage
   draw_wave(samples);
+
+  if( current_mode == MODE_OSCOPE ) {
+    CMP0->SCR = CMP_SCR_IEF(1) | CMP_SCR_CFR_MASK | CMP_SCR_CFF_MASK; // clear interrupt status
+    nvicEnableVector(CMP0_IRQn, KINETIS_CMP0_PRIORITY);
+  }
 }
 
 void cmp_handler(eventid_t id) {
@@ -90,19 +98,26 @@ static void serve_cmp_interrupt(CMP_TypeDef *cmp) {
   (void) cmp;
   
   osalSysLockFromISR();
-  if( cmp_init )
-    chEvtBroadcastI(&cmp_event); 
+
+  scopeReadI();
+  //  if( cmp_init ) { // this gets moved to the completion callback
+  //    chEvtBroadcastI(&cmp_event);
+  //  }
   osalSysUnlockFromISR();
 }
 
 OSAL_IRQ_HANDLER(Vector80) {
-
   OSAL_IRQ_PROLOGUE();
+  CMP0->SCR = CMP_SCR_IEF(1) | CMP_SCR_CFR_MASK | CMP_SCR_CFF_MASK; // clear interrupt status
+  nvicDisableVector(CMP0_IRQn);
   serve_cmp_interrupt(CMP0);
   OSAL_IRQ_EPILOGUE();
 }
 
 void oscopeInit(void) {
+
+  SIM->SCGC4 |= SIM_SCGC4_CMP;  // enable the CMP's clock
+  
   // enable the DAC
   // VRSEL = 1 means to use Vin2 which is VDD. Don't use VrefH because it causes crosstalk with ADC.
   // set VOSEL = 31, so 31 + 1 / 64 = 0.5 * VDD, e.g. midpoint select for CMP.
@@ -112,12 +127,19 @@ void oscopeInit(void) {
 
   // now we are configured to trip 1 when ADC input is above 1.5V
 
-  CMP0->CR0 = CMP_CR0_HYSTCTR(3) | CMP_CR0_FILTER_CNT(1); // 1 consecutive samples to agree
-  CMP0->CR1 = CMP_CR1_EN(1) | CMP_CR1_PMODE(1);
-  CMP0->FPR = CMP_FPR_FILT_PER(2); // filter at a rate of 12MHz (busclk = 24MHz / 2)
+  // this should be sampled, filtered mode
+  //CMP0->CR0 = CMP_CR0_HYSTCTR(3) | CMP_CR0_FILTER_CNT(1); // 1 consecutive samples to agree
+  //CMP0->CR1 = CMP_CR1_EN(1) | CMP_CR1_PMODE(1);
+  //CMP0->FPR = CMP_FPR_FILT_PER(2); // filter at a rate of 12MHz (busclk = 24MHz / 2)
 
-  nvicEnableVector(CMP0_IRQn, KINETIS_CMP0_PRIORITY);
+  // continuous mode
+  CMP0->CR0 = CMP_CR0_HYSTCTR(3) | CMP_CR0_FILTER_CNT(0); 
+  CMP0->FPR = CMP_FPR_FILT_PER(0);
+  CMP0->CR1 = CMP_CR1_EN(1) | CMP_CR1_PMODE(1);
   
   chEvtObjectInit(&cmp_event);
   cmp_init = 1;
+
+  CMP0->SCR = CMP_SCR_IEF(1) | CMP_SCR_CFR_MASK | CMP_SCR_CFF_MASK; // sample on falling edge
+  
 }

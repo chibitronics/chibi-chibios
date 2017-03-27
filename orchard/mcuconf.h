@@ -71,23 +71,23 @@
  */
 #define KINETIS_SPI_USE_SPI0                    TRUE
 #define KINETIS_SPI_USE_SPI1                    FALSE
-#define KINETIS_SPI_SPI0_IRQ_PRIORITY           4
-#define KINETIS_SPI_SPI1_IRQ_PRIORITY           4
+#define KINETIS_SPI_SPI0_IRQ_PRIORITY           5
+#define KINETIS_SPI_SPI1_IRQ_PRIORITY           5
 
 /*
  * I2C system settings.
  */
 #define KINETIS_I2C_USE_I2C0                    FALSE
 #define KINETIS_I2C_USE_I2C1                    FALSE
-#define KINETIS_I2C_I2C0_PRIORITY               5
-#define KINETIS_I2C_I2C1_PRIORITY               5
+#define KINETIS_I2C_I2C0_PRIORITY               6
+#define KINETIS_I2C_I2C1_PRIORITY               6
 
 /*
  * ADC driver system settings.
  */
 #define KINETIS_ADC_USE_ADC0                  TRUE
 #define KINETIS_ADC_IRQ_PRIORITY              5
-#define KINETIS_CMP0_PRIORITY                 7
+#define KINETIS_CMP0_PRIORITY                 4
 
 /*
  * LPTMR driver system settings.
@@ -95,7 +95,7 @@
 #define KINETIS_LPTMR0_PRIORITY                 1
 
 #define KINETIS_PWM_USE_TPM0                    TRUE
-#define KINETIS_PWM_TPM0_IRQ_PRIORITY           6
+#define KINETIS_PWM_TPM0_IRQ_PRIORITY           7
 
 /*
  * Processor specific widths of each port.

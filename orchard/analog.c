@@ -8,7 +8,65 @@
 
 #include "chbsem.h"
 
-static adcsample_t scope_sample[SCOPE_SAMPLE_DEPTH];
+adcsample_t scope_sample[SCOPE_SAMPLE_DEPTH];
+extern uint8_t cmp_init;
+extern event_source_t cmp_event;
+
+void adc_cb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
+  (void) adcp;
+  (void) buffer;
+  (void) n;
+  
+  if( cmp_init ) {
+    osalSysLockFromISR();
+    chEvtBroadcastI(&cmp_event);
+    osalSysUnlockFromISR();
+  }
+}
+
+static const ADCConversionGroup lightadc = {
+    0, // circular buffer mode? no.
+    1, // just one channel
+    adc_cb,  // callback
+    NULL,  // error callback
+    1 << 4, // channel 4
+    // CFG1 register
+    // SYSCLK = 48MHz.
+    // BUSCLK = SYSCLK / 4 = 12MHz
+    // ADCCLK = SYSCLK / 2 / 1 = 6 MHz
+
+    // ADLPC = 0 (normal power)
+    // ADLSMP = 0 (short sample time)
+    // ADHSC = 0 (normal conversion sequence)
+    // -> 5 ADCK cycles + 5 bus clock cycles = SFCadder
+    // 20 ADCK cycles per sample
+    
+    ADCx_CFG1_ADIV(ADCx_CFG1_ADIV_DIV_2) |
+    ADCx_CFG1_ADICLK(ADCx_CFG1_ADIVCLK_BUS_CLOCK_DIV_2) |
+    ADCx_CFG1_MODE(ADCx_CFG1_MODE_12_OR_13_BITS) | 0x10,  // 12 bits per sample, add in long sample time
+
+    // SC3 register
+    ADCx_SC3_AVGE |
+    ADCx_SC3_AVGS(ADCx_SC3_AVGS_AVERAGE_8_SAMPLES) 
+
+    //      48 MHz sysclk
+    // /2   24 MHz busclk
+    // /2   12 MHz after prescaler
+    // /2   6 MHz after adiv
+    // /17  353ksps after base sample time @ 12 bps
+    // /1   353ksps with no averaging
+  };
+
+
+void scopeReadI(void) {
+
+  adcStartConversionI(&ADCD1,
+		      &lightadc,
+		      scope_sample,
+		      SCOPE_SAMPLE_DEPTH);
+
+  return;
+}
 
 uint16_t *scopeRead(int adc_num, int speed_mode) {
   msg_t result;
@@ -44,7 +102,7 @@ uint16_t *scopeRead(int adc_num, int speed_mode) {
     0 // 1 sample
     :
     ADCx_SC3_AVGE |
-    ADCx_SC3_AVGS(ADCx_SC3_AVGS_AVERAGE_32_SAMPLES) // 32 sample average
+    ADCx_SC3_AVGS(ADCx_SC3_AVGS_AVERAGE_8_SAMPLES) 
 
     //      48 MHz sysclk
     // /2   24 MHz busclk
@@ -65,7 +123,7 @@ uint16_t *scopeRead(int adc_num, int speed_mode) {
 }
 
 void analogStart() {
-  
+  ADCD1.adc->CFG2 = 0x7;  // dial in the sample time to be just right for the PWM demo
 }
 
 uint32_t analogRead(int adc_num) {
