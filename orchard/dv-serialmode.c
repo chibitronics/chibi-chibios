@@ -16,6 +16,7 @@ static char text_buffer[TEXT_LEN];
 static int8_t write_ptr = 0; 
 
 extern uint32_t serial_needs_update;
+systime_t last_update_time = 0;
 
 uint8_t isprint_local(char c) {
   return ((c >= ' ' && c <= '~') ? 1 : 0);
@@ -130,6 +131,7 @@ void updateSerialScreen(void) {
 
 void dvInit(void) {
   int i;
+  last_update_time = chVTGetSystemTime();
   for( i = 0; i < TEXT_LEN; i++ ) {
     text_buffer[i] = ' '; // init with whitespace, use something else for debugging hints
   }

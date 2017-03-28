@@ -1,4 +1,3 @@
-// auto-trigger mode
 // auto-scroll mode
 
 /*
@@ -161,7 +160,8 @@ static void refresh_handler(eventid_t id) {
 
   switch(current_mode) {
   case MODE_SERIAL:
-    if( serial_needs_update ) {
+    if( serial_needs_update ||
+	((chVTTimeElapsedSinceX( last_update_time ) > AUTO_UPDATE_TIMEOUT_ST) && !locker_mode) ) {
       serial_needs_update = 0;
       updateSerialScreen(); // now updated only when new characters come in
     }
@@ -236,7 +236,7 @@ static void mode_handler(eventid_t id) {
     nvicDisableVector(CMP0_IRQn);
     palSetPadMode(IOPORT2, 2, PAL_MODE_ALTERNATIVE_2);    
     nvicEnableVector(UART0_IRQn, KINETIS_SERIAL_UART0_PRIORITY);
-    oledPauseBanner("Text Mode");
+    oledPauseBanner("Waiting for text...");
     current_mode = MODE_SERIAL;
     break;
   default:
