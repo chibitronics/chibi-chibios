@@ -142,8 +142,10 @@ void dvInit(void) {
 static uint8_t locker_pos = 0;
 uint8_t locker_mode = 0;
 static uint8_t sentinal_pos = 0;
+static uint8_t firmware_pos = 0;
 static char locker[] = "#MOD\n";
 static char sentinal[] = "#SYN\n";
+static char firmware[] = "#VER\n";
 #define SENTINAL_LEN 5
 uint32_t dv_search_sentinal(char c) {
   if( c == sentinal[sentinal_pos] && (sentinal_pos == (SENTINAL_LEN - 1)) ) {
@@ -173,9 +175,24 @@ uint32_t dv_search_locker(char c) {
   return 0;
 }
 
+uint32_t dv_search_firmware(char c) {
+  if( c == firmware[firmware_pos] && (firmware_pos == (SENTINAL_LEN - 1)) ) {
+    firmware_pos = 0;
+    return 1;
+  }
+  if( c == firmware[firmware_pos] ) {
+    firmware_pos++;
+    return 0;
+  }
+  
+  firmware_pos = 0;
+  return 0;
+}
+
 void dvDoSerial(void) {
   char c;
   int8_t prev_ptr;
+  char vers[11];
 
   while(TRUE) {
     prev_ptr = write_ptr - 1;
@@ -198,6 +215,14 @@ void dvDoSerial(void) {
     if(dv_search_locker(c)) {
       locker_mode = locker_mode ? 0 : 1; // toggle locker mode
       dvInit();
+      return;
+    }
+    if(dv_search_firmware(c)) {
+      chsnprintf(vers, sizeof(vers), "%s", gitversion );
+      oledPauseBanner(vers);
+      chThdSleepMilliseconds(4500);
+      dvInit();
+      updateSerialScreen();
       return;
     }
     
