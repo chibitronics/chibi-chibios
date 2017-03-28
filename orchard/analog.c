@@ -60,10 +60,11 @@ static const ADCConversionGroup lightadc = {
 
 void scopeReadI(void) {
 
-  adcStartConversionI(&ADCD1,
-		      &lightadc,
-		      scope_sample,
-		      SCOPE_SAMPLE_DEPTH);
+  if( ADCD1.state != ADC_ACTIVE )
+    adcStartConversionI(&ADCD1,
+			&lightadc,
+			scope_sample,
+			SCOPE_SAMPLE_DEPTH);
 
   return;
 }

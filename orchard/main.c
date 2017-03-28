@@ -1,3 +1,6 @@
+// auto-trigger mode
+// auto-scroll mode
+
 /*
     ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
@@ -167,6 +170,13 @@ static void refresh_handler(eventid_t id) {
     updateVoltsScreen();
     break;
   case MODE_OSCOPE:
+    if( chVTTimeElapsedSinceX( last_trigger_time ) > AUTOSAMPLE_HOLDOFF_ST ) {
+      adcAcquireBus(&ADCD1);      
+      osalSysLock();
+      scopeReadI();
+      osalSysUnlock();
+      adcReleaseBus(&ADCD1);
+    }
     // add code to enable auto-sampling if trigger has not been found for a while
     // updateOscopeScreen(); // now handled by trigger mechanism
     break;

@@ -15,6 +15,7 @@ uint8_t speed_mode = 0;
 uint8_t cmp_init = 0;
 extern event_source_t cmp_event;
 extern uint8_t current_mode;
+systime_t last_trigger_time = 0;
 
 static void draw_wave(uint16_t *samples) {
   coord_t width;
@@ -98,7 +99,6 @@ static void serve_cmp_interrupt(CMP_TypeDef *cmp) {
   (void) cmp;
   
   osalSysLockFromISR();
-
   scopeReadI();
   //  if( cmp_init ) { // this gets moved to the completion callback
   //    chEvtBroadcastI(&cmp_event);
@@ -108,6 +108,7 @@ static void serve_cmp_interrupt(CMP_TypeDef *cmp) {
 
 OSAL_IRQ_HANDLER(Vector80) {
   OSAL_IRQ_PROLOGUE();
+  last_trigger_time = chVTGetSystemTimeX();
   CMP0->SCR = CMP_SCR_IEF(1) | CMP_SCR_CFR_MASK | CMP_SCR_CFF_MASK; // clear interrupt status
   nvicDisableVector(CMP0_IRQn);
   serve_cmp_interrupt(CMP0);
@@ -121,7 +122,10 @@ void oscopeInit(void) {
   // enable the DAC
   // VRSEL = 1 means to use Vin2 which is VDD. Don't use VrefH because it causes crosstalk with ADC.
   // set VOSEL = 31, so 31 + 1 / 64 = 0.5 * VDD, e.g. midpoint select for CMP.
-  CMP0->DACCR = CMP_DACCR_DACEN(1) | CMP_DACCR_VRSEL(1) | CMP_DACCR_VOSEL(31);
+  // REVISION: due to crosstalk issues with self-sampling set threshold to
+  // VOSEL = 19, so 19 + 1 / 64 = 0.3125 * VDD ~ 1.05V for 3.3V VDD. 31.25% is also enough above
+  // Vol so that most proper CMOS signals should still trigger properly.
+  CMP0->DACCR = CMP_DACCR_DACEN(1) | CMP_DACCR_VRSEL(1) | CMP_DACCR_VOSEL(19);
 
   CMP0->MUXCR = CMP_MUXCR_MSEL(7) | CMP_MUXCR_PSEL(0);  // 0 = CMP0_IN0, 7 = 6-bit DAC0 reference
 
@@ -141,5 +145,6 @@ void oscopeInit(void) {
   cmp_init = 1;
 
   CMP0->SCR = CMP_SCR_IEF(1) | CMP_SCR_CFR_MASK | CMP_SCR_CFF_MASK; // sample on falling edge
-  
+
+  last_trigger_time = chVTGetSystemTime();
 }

@@ -121,6 +121,7 @@ void oledPauseBanner(const char *str) {
   font = gdispOpenFont("DejaVuSans12");
   height = gdispGetFontMetric(font, fontHeight);
   
+  gdispClear(Black);
   gdispFillStringBox(0, height, width, gdispGetFontMetric(font, fontHeight),
                      str, font, Black, White, justifyCenter);
   gdispFlush();
