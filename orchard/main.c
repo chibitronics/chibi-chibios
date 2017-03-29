@@ -1,5 +1,3 @@
-// auto-scroll mode
-
 /*
     ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
@@ -163,7 +161,7 @@ static void refresh_handler(eventid_t id) {
     if( serial_needs_update ||
 	((chVTTimeElapsedSinceX( last_update_time ) > AUTO_UPDATE_TIMEOUT_ST) && !locker_mode) ) {
       serial_needs_update = 0;
-      updateSerialScreen(); // now updated only when new characters come in
+      updateSerialScreen();
     }
     break;
   case MODE_VOLTS:
