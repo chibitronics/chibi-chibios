@@ -126,11 +126,14 @@ static void option_cb(EXTDriver *extp, expchannel_t channel) {
   // check to see if the other button is already held down before issuing event
   if(palReadPad(IOPORT2, 6) == PAL_HIGH) { // other button isn't already pressed
     chSysLockFromISR();
-    //  chEvtBroadcastI(&option_event);
-    chEvtBroadcastI(&mode_event); // get rid of option, make both mode buttons
+    chEvtBroadcastI(&option_event);
     chSysUnlockFromISR();
   }
 }
+
+uint8_t oled_pattern = 0;
+uint8_t option_handler_hit = 0;
+uint8_t mode_handler_hit = 0;
 
 static void led_handler(eventid_t id) {
   (void) id;
@@ -151,6 +154,7 @@ static void led_handler(eventid_t id) {
       pwm_counting_up = 1;
     }
   }
+
 }
 
 static void refresh_handler(eventid_t id) {
@@ -183,29 +187,20 @@ static void refresh_handler(eventid_t id) {
   }
 }
 
+#define ENOUGH_HITS 8
+
 static void option_handler(eventid_t id) {
   (void) id;
-  
-  switch(current_mode) {
-  case MODE_SERIAL:
-    serial_init = serial_init ? 0 : 1;  // "scroll lock"
-    if( !serial_init  )
-      oledPauseBanner("Serial Paused");
-    else
-      oledPauseBanner("Serial Resumed");
-    break;
-  case MODE_VOLTS:
-    // no modal behavior
-    break;
-  case MODE_OSCOPE:
-    speed_mode = speed_mode ? 0 : 1; // toggle speed mode
-    if( speed_mode ) 
-      oledPauseBanner("High speed");
-    else
-      oledPauseBanner("Low speed");
-    break;
-  default:
-    break;
+
+  if(current_mode == MODE_TEST) {
+    oled_pattern++;
+    oledTestPattern(oled_pattern);
+    option_handler_hit ++;
+    if( option_handler_hit != 0 && mode_handler_hit != 0 ) {
+      if( option_handler_hit + mode_handler_hit > ENOUGH_HITS ) {
+	chprintf(stream, "PASS\n\r");
+      }
+    }
   }
 }
 
@@ -216,29 +211,16 @@ static void serial_handler(eventid_t id) {
 
 static void mode_handler(eventid_t id) {
   (void) id;
-  switch(current_mode) {
-  case MODE_SERIAL:
-    oledPauseBanner("Volts Mode");
-    serial_init = 0;
-    nvicDisableVector(UART0_IRQn);
-    current_mode = MODE_VOLTS;
-    break;
-  case MODE_VOLTS:
-    oledPauseBanner("Wave Mode");
-    serial_init = 1;
-    current_mode = MODE_OSCOPE;
-    palSetPadMode(IOPORT2, 2, PAL_MODE_INPUT_ANALOG);    
-    nvicEnableVector(CMP0_IRQn, KINETIS_CMP0_PRIORITY);
-    break;
-  case MODE_OSCOPE:
-    nvicDisableVector(CMP0_IRQn);
-    palSetPadMode(IOPORT2, 2, PAL_MODE_ALTERNATIVE_2);    
-    nvicEnableVector(UART0_IRQn, KINETIS_SERIAL_UART0_PRIORITY);
-    oledPauseBanner("Waiting for text...");
-    current_mode = MODE_SERIAL;
-    break;
-  default:
-    osalDbgAssert(false, "invalid operating mode");
+  
+  if(current_mode == MODE_TEST) {
+    oled_pattern++;
+    oledTestPattern(oled_pattern);
+    mode_handler_hit ++;
+    if( option_handler_hit != 0 && mode_handler_hit != 0 ) {
+      if( option_handler_hit + mode_handler_hit > ENOUGH_HITS ) {
+	chprintf(stream, "PASS\n\r");
+      }
+    }
   }
 }
 
@@ -308,7 +290,8 @@ static THD_FUNCTION(evHandlerThread, arg) {
 
   serial_init = 1;
   nvicEnableVector(UART0_IRQn, KINETIS_SERIAL_UART0_PRIORITY);
-  oledPauseBanner("Waiting for text...");
+  oledTestBanner("Waiting for SERIAL");
+  chprintf(stream, "TEST START\r\n");
 
   dvInit();
   while(true) {

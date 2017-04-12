@@ -92,6 +92,47 @@ void oledReleaseBus(void) {
   spiReleaseBus(driver);
 }
 
+
+void oledTestPattern(uint8_t pattern) {
+  coord_t width, height;
+  int i;
+  orchardGfxStart();
+  width = gdispGetWidth();
+  height = gdispGetHeight();
+  gdispClear(Black);
+
+  switch(pattern % 6) {
+  case 0:
+    gdispClear(White);
+    break;
+  case 1:
+    gdispClear(Black);
+    break;
+  case 2:
+    for( i = 0; i < height; i += 2 ) {
+      gdispDrawLine( 0, i, width, i, White );
+    }
+    break;
+  case 3:
+    for( i = 1; i < height; i += 2 ) {
+      gdispDrawLine( 0, i, width, i, White );
+    }
+    break;
+  case 4:
+    for( i = 0; i < width; i += 2 ) {
+      gdispDrawLine( i, 0, i, height, White );
+    }
+    break;
+  case 5:
+    for( i = 1; i < width; i += 2 ) {
+      gdispDrawLine( i, 0, i, height, White );
+    }
+    break;
+  }
+  gdispFlush();
+  orchardGfxEnd();
+}
+
 void oledOrchardBanner(void) {
   coord_t width;
   coord_t height;
@@ -105,6 +146,24 @@ void oledOrchardBanner(void) {
   gdispClear(Black);
   gdispDrawStringBox(0, height * 2, width, gdispGetFontMetric(font, fontHeight),
                      "Chibi Dataviewer", font, White, justifyCenter);
+  gdispFlush();
+  gdispCloseFont(font);
+  orchardGfxEnd();
+}
+
+void oledTestBanner(char *str) {
+  coord_t width;
+  coord_t height;
+  font_t font;
+  
+  orchardGfxStart();
+  width = gdispGetWidth();
+  font = gdispOpenFont("UI2");
+  height = gdispGetFontMetric(font, fontHeight);
+  
+  gdispClear(Black);
+  gdispDrawStringBox(0, height * 2, width, gdispGetFontMetric(font, fontHeight),
+                     str, font, White, justifyCenter);
   gdispFlush();
   gdispCloseFont(font);
   orchardGfxEnd();

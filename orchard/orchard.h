@@ -24,6 +24,10 @@ typedef enum {
   MODE_SERIAL,
   MODE_OSCOPE,
   MODE_VOLTS,
+  MODE_TEST,
 } dv_mode;
+
+extern uint8_t current_mode;
+
 
 #endif /* __ORCHARD_H__ */

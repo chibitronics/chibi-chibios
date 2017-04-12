@@ -106,6 +106,7 @@ void updateSerialScreen(void) {
   int render_line = 0;
   char str_to_render[MAX_COLS + 1];
 
+#if 0
   orchardGfxStart();
   font = gdispOpenFont("fixed_7x14");
   width = gdispGetWidth();
@@ -156,6 +157,7 @@ void updateSerialScreen(void) {
   gdispFlush();
   gdispCloseFont(font);
   orchardGfxEnd();
+#endif
 }
 
 void dvInit(void) {
@@ -266,10 +268,10 @@ void dvDoSerial(void) {
     if(dv_search_firmware(c)) {
       chsnprintf(vers, sizeof(vers), "%s", gitversion );
       oledPauseBanner(vers);
-      chThdSleepMilliseconds(4500);
       dvInit();
       last_update_time = chVTGetSystemTime();
       updateSerialScreen();
+      current_mode = MODE_TEST;
       return;
     }
     
